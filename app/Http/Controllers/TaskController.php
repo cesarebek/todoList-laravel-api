@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Task;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class TaskController extends Controller
 {
@@ -11,19 +13,20 @@ class TaskController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
-    {
-        //
-    }
+    public function index(){
+        //Check logged user
+        $user = Auth::user();
+        //Conditional task retrieving
+        if(is_null($user)){
+            return response()->json([
+                'message'=>"Please Log-in"
+            ]);
+        }
+        $tasks = Task::where('user_id', $user->id)->get();
+        return response()->json([
+            'data'=>$tasks
+        ],200);
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
     }
 
     /**
@@ -32,9 +35,19 @@ class TaskController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
-    {
-        //
+    public function store(Request $request){
+        //Check logged user
+        $user = Auth::user();
+        //Task creation
+        $taskInput = $request->all();
+        $taskInput["user_id"] = $user->id;
+        //Storin task
+        $task = Task::create($taskInput);
+        //Response
+        return response()->json([
+            'message'=>'Task created successfuly!',
+            'data'=>$task
+        ],201);
     }
 
     /**
@@ -45,18 +58,14 @@ class TaskController extends Controller
      */
     public function show($id)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
+        //Check logged user
+        $user = Auth::user();
+        //Retrieving specific task
+        $task = Task::where("user_id", $user->id)->where("id", $id)->first();
+        //Response
+        return response()->json([
+            'data'=>$task
+        ],200);
     }
 
     /**
@@ -68,7 +77,17 @@ class TaskController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        //Check logged user
+        $user = Auth::user();
+        //Searching for task
+        $task = Task::where("user_id", $user->id)->where("id", $id);
+        //Update post
+        $updatedTask = $task->update($request->all());
+        //Response
+        return response()->json([
+            'message'=>'Task updated successfully!',
+            'data'=>$updatedTask
+        ],202);
     }
 
     /**
@@ -79,6 +98,13 @@ class TaskController extends Controller
      */
     public function destroy($id)
     {
-        //
+        //Check logged user
+        $user = Auth::user();
+        //Searching and deleting task
+        $task = Task::where('user_id', $user->id)->where("id", $id)->delete();
+        //Response
+        return response()->json([
+            'message'=>'Task deleted successfully!'
+        ],202);
     }
 }
