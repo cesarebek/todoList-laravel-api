@@ -51,10 +51,18 @@ class TaskController extends Controller
         //Searching for specific task
         $task = Task::where("user_id", Auth::user()->id)
             ->find($id);
-        //Response
-        return response()->json([
-            'data'=>$task
-        ],200);
+        
+        if(!is_null($task)){
+            //Success Response
+            return response()->json([
+                'data'=>$task
+            ],200); 
+        }
+        //Failure Response
+            return response()->json([
+                'message'=>'Task not found'
+            ],404); 
+        
     }
 
     /**
@@ -81,8 +89,8 @@ class TaskController extends Controller
         }
         //Failure Response
         return response()->json([
-                'message'=>'Task not Found!'
-            ],404);
+            'message'=>'Task not Found!'
+        ],404);
     }
 
     /**
@@ -94,10 +102,18 @@ class TaskController extends Controller
     public function destroy($id)
     {
         //Searching and deleting task
-        $task = Task::where('user_id', Auth::user()->id)->find($id)->delete();
-        //Response
+        $task = Task::where('user_id', Auth::user()->id)->find($id);
+
+        if(!is_null($task)){
+            $task->delete();
+            //Response
+            return response()->json([
+                'message'=>'Task deleted successfully!'
+            ],202);
+        }
+        //Failure Response
         return response()->json([
-            'message'=>'Task deleted successfully!'
-        ],202);
+            'message'=>'Task not Found!'
+        ],404);
     }
 }
