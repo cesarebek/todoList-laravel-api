@@ -44,7 +44,7 @@ class User extends Authenticatable
     ];
 
     //Function that associate tasks to his owner
-    public function task(){
-        return $this->hasMany('App\Models\Task');
+    public function tasks(){
+        return $this->hasMany(Task::class);
     }
 }

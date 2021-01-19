@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Task;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -14,19 +15,11 @@ class TaskController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index(){
-        //Check logged user
-        $user = Auth::user();
-        //Conditional task retrieving
-        if(is_null($user)){
-            return response()->json([
-                'message'=>"Please Log-in"
-            ]);
-        }
-        $tasks = Task::where('user_id', $user->id)->get();
+        //Retrieving all user authenticated tasks
+        $tasks = Auth::user()->tasks;
         return response()->json([
             'data'=>$tasks
         ],200);
-
     }
 
     /**
@@ -35,14 +28,11 @@ class TaskController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request){
-        //Check logged user
-        $user = Auth::user();
+    public function store(Request $req){ 
         //Task creation
-        $taskInput = $request->all();
-        $taskInput["user_id"] = $user->id;
-        //Storin task
-        $task = Task::create($taskInput);
+        $taskInput["user_id"] = Auth::user()->id;
+        //Storing task
+        $task = Task::create($req->all());
         //Response
         return response()->json([
             'message'=>'Task created successfuly!',
@@ -57,11 +47,10 @@ class TaskController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function show($id)
-    {
-        //Check logged user
-        $user = Auth::user();
-        //Retrieving specific task
-        $task = Task::where("user_id", $user->id)->where("id", $id)->first();
+    { 
+        //Searching for specific task
+        $task = Task::where("user_id", Auth::user()->id)
+            ->find($id);
         //Response
         return response()->json([
             'data'=>$task
@@ -75,19 +64,25 @@ class TaskController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $req, $id)
     {
-        //Check logged user
-        $user = Auth::user();
-        //Searching for task
-        $task = Task::where("user_id", $user->id)->where("id", $id);
-        //Update post
-        $updatedTask = $task->update($request->all());
-        //Response
+        $inputs = $req->all();
+        $task = Task::where('user_id', Auth::user()->id)->find($id);
+
+        if(!is_null($task)){
+            //Check if task is complet
+            $task->completed_at = $req['completed'] ? Carbon::now() : null;
+            $task->update($inputs);
+            
+            //Success Response
+            return response()->json([
+                'message'=>'Task updated successfully!'
+            ],202);
+        }
+        //Failure Response
         return response()->json([
-            'message'=>'Task updated successfully!',
-            'data'=>$updatedTask
-        ],202);
+                'message'=>'Task not Found!'
+            ],404);
     }
 
     /**
@@ -98,10 +93,8 @@ class TaskController extends Controller
      */
     public function destroy($id)
     {
-        //Check logged user
-        $user = Auth::user();
         //Searching and deleting task
-        $task = Task::where('user_id', $user->id)->where("id", $id)->delete();
+        $task = Task::where('user_id', Auth::user()->id)->find($id)->delete();
         //Response
         return response()->json([
             'message'=>'Task deleted successfully!'

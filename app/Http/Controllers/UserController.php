@@ -29,7 +29,7 @@ class UserController extends Controller
         //Searching for the user in db
         $user = User::where('email', $request->email)->first();
         //Check
-        if(is_null($user) || Hash::check($request->password, $user->password)){
+        if(is_null($user) || !Hash::check($request->password, $user->password)){
             return response()->json([
                 'message'=>'Email or Password not valid!'
             ], 404);
@@ -44,13 +44,23 @@ class UserController extends Controller
         ]);
     }
 
+    //User SignOut
+    public function logout(Request $request){
+        $request->user()->currentAccessToken()->delete();
+        //Response
+        return response()->json([
+            'message'=>'User logged out successfuly'
+        ]);
+    }
+
     //Retrieving User details
     public function user(){
-        $user = Auth::user();
-        if(!is_null($user)) { 
-            return response()->json(['data' => $user]);
+        
+        $check = Auth::check();
+        if($check === false){
+            return response()->json(['message' => 'Please log-in']);
         }
-
-        return response()->json(['message' => 'Please log-in']);   
-    }
+        $user = Auth::user();
+        return response()->json(['data' => $user]);
+    }    
 }
