@@ -17,14 +17,16 @@ use Illuminate\Support\Facades\Route;
 */
 
 //Public Routes
-Route::post("signup", [UserController::class, "signup"]);
-Route::post("signin", [UserController::class, "signin"]);
+Route::post("register", [UserController::class, "signup"]);
+Route::post("login", [UserController::class, "signin"]);
 
 //Private Routes
 Route::middleware('auth:sanctum')->group(function(){
     Route::prefix("user")->group(function(){
         Route::get("/", [UserController::class, "user"]);  
         Route::post("/logout", [UserController::class, "logout"]);  
+        Route::put("/update", [UserController::class, "update"]);  
+        Route::delete("/destroy", [UserController::class, "destroy"]);  
     });
     Route::get("tasks", [TaskController::class, "index"]);
     Route::prefix("task")->group(function(){

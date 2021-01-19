@@ -29,10 +29,10 @@ class TaskController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $req){ 
-        //Task creation
+        $taskInput = $req->all();
         $taskInput["user_id"] = Auth::user()->id;
         //Storing task
-        $task = Task::create($req->all());
+        $task = Task::create($taskInput);
         //Response
         return response()->json([
             'message'=>'Task created successfuly!',
@@ -78,7 +78,7 @@ class TaskController extends Controller
         $task = Task::where('user_id', Auth::user()->id)->find($id);
 
         if(!is_null($task)){
-            //Check if task is complet
+            //Check if task is complete
             $task->completed_at = $req['completed'] ? Carbon::now() : null;
             $task->update($inputs);
             

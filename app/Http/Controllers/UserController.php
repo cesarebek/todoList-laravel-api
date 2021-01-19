@@ -14,13 +14,16 @@ class UserController extends Controller
         //All inputs validation will be hadled in front-end...
         $inputs = $request->all();
         //Hashing password
-        $inputs["password"] = Hash::make($request->password);
+        $inputs['password'] = Hash::make($request->password);
         //Creating New User
         $user = User::create($inputs);
+        //Adding token for instant login
+        $token = $user->createToken('bek_cezary')->plainTextToken;
         //Response
         return response()->json([
             "message"=>"User created successfuly",
-            "data"=>$user
+            "data"=>$user,
+            'token'=>$token
         ]);
     }
 
@@ -44,23 +47,36 @@ class UserController extends Controller
         ]);
     }
 
+    //User Update
+    public function update(Request $req){
+        $user = $req->user()->update($req->all());
+        //Response
+         return response()->json([
+            "message"=>"User updated successfuly!",
+            "data"=>$user
+        ]);
+    }
+
     //User SignOut
-    public function logout(Request $request){
-        $request->user()->currentAccessToken()->delete();
+    public function logout(Request $req){
+        $req->user()->currentAccessToken()->delete();
         //Response
         return response()->json([
             'message'=>'User logged out successfuly'
         ]);
     }
 
+    //User Delete
+    public function destroy(Request $req){
+        $req->user()->delete();
+        //Response
+        return response()->json([
+            'message'=>'User deleted successfuly'
+        ]);
+    }
+
     //Retrieving User details
     public function user(){
-        
-        $check = Auth::check();
-        if($check === false){
-            return response()->json(['message' => 'Please log-in']);
-        }
-        $user = Auth::user();
-        return response()->json(['data' => $user]);
+        return response()->json(['data'=>Auth::user()]);
     }    
 }
