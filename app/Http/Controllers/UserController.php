@@ -13,6 +13,10 @@ class UserController extends Controller
     public function signup(Request $request){
         //All inputs validation will be hadled in front-end...
         $inputs = $request->all();
+
+        if(User::where('email', $inputs['email'])->exists()){
+             return abort(400, "User already exist, please login");
+        }
         //Hashing password
         $inputs['password'] = Hash::make($request->password);
         //Creating New User
